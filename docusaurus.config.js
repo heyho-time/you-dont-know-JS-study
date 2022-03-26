@@ -10,7 +10,7 @@ const config = {
   tagline: "자바스크립트는 언제 알 수 있을까",
   url: "https://your-docusaurus-test-site.com",
   baseUrl: "/",
-  onBrokenLinks: "throw",
+  onBrokenLinks: "ignore",
   onBrokenMarkdownLinks: "warn",
   favicon: "img/logo.jpeg",
   organizationName: "facebook", // Usually your GitHub org/user name.
