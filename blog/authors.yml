@@ -1,0 +1,17 @@
+samuel:
+  name: Samuel Park
+  title: Organizer of study, Front End dev
+  url: https://github.com/p-acid
+  image_url: https://github.com/p-acid.png
+
+daisy:
+  name: Daisy Jeong
+  title: Participant of study, Front End dev
+  url: https://github.com/Jeong-minji
+  image_url: https://github.com/Jeong-minji.png
+
+heyho:
+  name: Hey-ho
+  title: Participant of study, Front End dev
+  url: https://github.com/heyho-time
+  image_url: https://github.com/heyho-time.png
