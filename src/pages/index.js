@@ -55,7 +55,7 @@ export default function Home() {
           </Link>
         </div>
         <Link to="blog" style={{ fontSize: "2rem", fontWeight: "700" }}>
-          후기 보러가기 📝
+          블로그 및 후기 보러가기 📝
         </Link>
       </div>
     </Layout>
