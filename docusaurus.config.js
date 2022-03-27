@@ -8,13 +8,13 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 const config = {
   title: "너는 아직 자바스크립트를 모른다 📒",
   tagline: "자바스크립트는 언제 알 수 있을까",
-  url: "https://your-docusaurus-test-site.com",
+  url: "https://you-dont-know-js-study.vercel.app/",
   baseUrl: "/",
   onBrokenLinks: "ignore",
   onBrokenMarkdownLinks: "warn",
   favicon: "img/logo.jpeg",
-  organizationName: "facebook", // Usually your GitHub org/user name.
-  projectName: "docusaurus", // Usually your repo name.
+  organizationName: "p-acid", // Usually your GitHub org/user name.
+  projectName: "you-dont-know-JS-study", // Usually your repo name.
 
   presets: [
     [
