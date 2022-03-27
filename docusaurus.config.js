@@ -86,7 +86,7 @@ const config = {
                 href: "https://github.com/Jeong-minji",
               },
               {
-                label: "Hey-ho",
+                label: "Harry (성해호)",
                 href: "https://github.com/heyho-time",
               },
             ],
