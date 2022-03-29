@@ -82,7 +82,7 @@ const config = {
                 href: "https://acid-log.vercel.app/",
               },
               {
-                label: "Daisy Jeong",
+                label: "Daisy (정민지)",
                 href: "https://github.com/Jeong-minji",
               },
               {
