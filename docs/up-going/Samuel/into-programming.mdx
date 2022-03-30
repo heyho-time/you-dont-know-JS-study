@@ -486,7 +486,8 @@ else {
 
 > **TL;DR** 🔖
 >
-> -
+> - 조건에 따라 특정 동작을 반복하려면 **반복문**을 사용합니다.
+> - 자바스크립트 반복문은 **`for` 문과 `while` 문**이 있습니다.
 
 <br />
 
@@ -545,4 +546,176 @@ for (vari = 0; i <= 9; i = i + 1) {
 
 위 코드의 경우에도 앞의 `while` 문과 똑같이 동작합니다.
 
-- `for` 문의 경우
+- `for` 문의 경우 **초기화 절(`var = 0`)과 조건부 테스트 절(`i <= 9`) 및 업데이트 절(`i = i + 1`)**이 존재하기에 반복 변수를 활용하기에 좋습니다.
+
+<br />
+
+## Function ❕
+
+> **TL;DR** 🔖
+>
+> - 재사용할 구문을 **함수**로 만들어 반복적으로 실행할 수 있습니다.
+> - 함수는 **선택적으로 인자(혹은 매개변수)를 받거나 값을 반환할 수 있습니다.**
+
+<br />
+
+재사용할 구문이 있다면 이를 **함수(Function)**으로 만들 수 있습니다.
+
+- 함수는 일반적으로 **함수명**을 통해 호출될 수 있는 코드 영역이며, 함수를 실행할 경우 **해당 영역(블록) 내 코드는 매번 실행됩니다.**
+
+```js
+function printAmount() {
+  console.log(amount.toFixed(2));
+}
+
+var amount = 99.99;
+
+printAmount(); // "99.99"
+
+amount = amount * 2;
+
+printAmount(); // "199.98"
+```
+
+함수는 **선택적**으로 **인자(arguments, 혹은 매개변수: parameter)를 사용**할 수 있고, **반환**도 할 수 있습니다.
+
+```js
+function printAmount(amt) {
+  console.log(amt.toFixed(2));
+}
+
+function formatAmount() {
+  return "$" + amount.toFixed(2);
+}
+
+var amount = 99.99;
+
+printAmount(amount * 2); // "199.98"
+
+amount = formatAmount();
+
+console.log(amount); // "$99.99"
+```
+
+함수의 **반환값을 변수에 저장**하여 반복적인 함수 실행 없이 값을 활용할 수 있습니다.
+
+```js
+const TAX_RATE = 0.08;
+
+function calculateFinalPurchaseAmount(amt) {
+  // calculate the new amount with the tax amt = amt + (amt * TAX_RATE);
+  // return the new amount
+  return amt;
+}
+
+var amount = 99.99;
+
+amount = calculateFinalPurchaseAmount(amount);
+
+console.log(amount.toFixed(2)); // "107.99"
+```
+
+함수에 **더 많은 명령문이 포함될 수록 함수의 장점은 더욱 극대화**됩니다.
+
+<br />
+
+## Scope ❕
+
+> **TL;DR** 🔖
+>
+> - 자바스크립트의 함수는 고유한 **스코프**를 갖고, 이는 **변수 모음과 해당 변수에 접근하는 방법에 대한 규칙**입니다.
+> - 스코프 규칙은 **한 스코프의 코드가 해당 스코프 또는 외부의 스코프에 접근 가능하다**는 것입니다.
+
+<br />
+
+프로그래밍에서는 **스코프(Scope)**라는 영역 단위가 있습니다.
+
+- 자바스크립트에서 각 함수는 **고유한 스코프**를 갖습니다.
+- 스코프란 기본적으로 **변수 모음과 해당 변수에 접근하는 방법에 대한 규칙**입니다.
+  - 자세히 말해, 특정 **함수 내부의 코드만이 해당 함수의 스코피에 접근할 수 있습니다.**
+  - 그렇기에, **동일한 스코프 내 변수명은 고유해야합니다.**
+
+```js
+function one() {
+  // this `a` only belongs to the `one()` function
+  var a = 1;
+  console.log(a);
+}
+
+function two() {
+  // this `a` only belongs to the `two()` function
+  var a = 2;
+  console.log(a);
+}
+
+one(); // 1
+two(); // 2
+```
+
+또한 스코프는 **중첩될 수 있습니다.**
+
+- 중첩된 경우 **안쪽의 코드는 두 스코프의 변수에 접근**할 수 있습니다.
+
+```js
+function outer() {
+  var a = 1;
+
+  function inner() {
+    var b = 2;
+    // we can access both `a` and `b` here
+    console.log(a + b); // 3
+  }
+
+  inner();
+
+  // we can only access `a` here
+  console.log(a); // 1
+}
+outer();
+```
+
+- 스코프 규칙에 의하면 한 스코프의 코드는 **해당 스코프 또는 그 밖의 스코프**에 접근할 수 있습니다.
+  - 그래서 위의 경우 `inner()` 함수 내부의 코드는 변수 `a`, `b` 에 접근할 수 있지만, `outer()` 함수의 경우 `a` 에만 접근 가능합니다.
+
+<br />
+
+## Practice ❕
+
+- 프로그래밍에서 **실습**은 중요하다. 실습해보자.
+
+```js
+const taxRate = 0.1;
+const phonePrice = 2000;
+const accessoryPrice = 400;
+const spendingThreshold = 6500;
+
+let bankAccountBlance = 10000;
+
+const calculateTotalPrice = (balance) => {
+  let amount = 0;
+
+  while (amount + phonePrice < bankAccountBlance) {
+    if (bankAccountBlance - phonePrice >= 0) {
+      amount += phonePrice;
+
+      if (amount < spendingThreshold) {
+        amount += accessoryPrice;
+      }
+    }
+  }
+
+  const amountAddTax = amount + amount * 0.1;
+
+  console.log(amount);
+
+  return amountAddTax;
+};
+
+const totalPtice = calculateTotalPrice(bankAccountBlance);
+
+console.log(`총 금액은 ${totalPtice.toFixed(2)}입니다.`);
+
+if (totalPtice < bankAccountBlance) {
+  console.log("당신은 감당 가능합니다.");
+}
+```
