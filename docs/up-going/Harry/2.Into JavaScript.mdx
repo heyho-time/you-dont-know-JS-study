@@ -1,0 +1,633 @@
+---
+slug: /up-going/harry/into_javascript
+title: Into JavaScript
+tags: []
+sidebar_position: 2
+---
+
+## typeof 연산자
+
+```jsx
+var a;
+typeof a; // "undefined"
+
+a = undefined;
+typeof a; // "undefined" 할당하지않은 변수 a와 undefined 할당한 a. 동작이 같다.
+
+a = "hello world";
+typeof a; // "string"
+
+a=42;
+typeof a; // "number"
+
+a = true;
+typeof a; // "boolean"
+
+a = null;
+typeof a; // "object"--weird, bug !!!!!!!!!!!!!!!
+웹에 있는 너무 많은 코드가 버그에 의존하므로
+이를 수정하면 더 많은 버그가 발생하기 때문에 수정되지 않을 것이다.
+
+a={b:"c"};
+typeof a; // "object"
+
+```
+
+---
+
+## Object
+
+```jsx
+varobj = {
+  a: "hello world",
+  b: 42,
+  c: true,
+};
+obj.a; // "hello world"
+obj.b; // 42
+obj.c; // true
+
+obj["a"];
+obj["b"];
+obj["c"];
+// "hello world"
+// 42
+// true
+```
+
+- key, value로 이뤄져있다.
+
+- dot notation, bracket notation을 사용할 수 있다.
+
+- `[ ]` 표기법에는 변수또는 문자열 리터럴(" .. " 또는 ' .. '로 래핑되어야 함)이 필요하다.
+  <img src="/img/harry/obj.png" alt="banner" style={{ width: 600 }} />
+
+---
+
+## Arrays
+
+Object와 달리 key, value가 아닌,
+
+숫자로 인덱스된 위치에 값(모든 유형의)을 보유하는 객체이다.
+
+index는 0부터 시작한다.
+
+```jsx
+var arr = ["hello world", 42, true];
+
+arr[0]; // "hello world"
+arr[1]; // 42
+arr[2]; // true
+arr.length; // 3
+typeof arr; // "object" 타입이 똑같다.
+```
+
+---
+
+## Functions
+
+함수또한 객체의 하위 유형이다.
+
+```jsx
+function foo() {
+  return 42;
+}
+
+foo.bar = "hello world";
+
+typeof foo; // "function"
+typeof foo(); // "number"
+typeof foo.bar; // "string"
+```
+
+---
+
+## Built-In Type Methods
+
+JS에는 내장 메서드가 있다.
+
+```jsx
+var a = "hello world";
+var b = 3.14159;
+
+a.length; // 11
+a.toUpperCase(); // "HELLO WORLD"
+b.toFixed(4); // "3.1416"
+```
+
+---
+
+## Comparing Values
+
+모든 비교의 결과는 비교되는 값 유형에 관계없이 엄격한 부울 값(true 또는 false)이 된다.
+
+### Coercion
+
+강제는 명시적(Explicit), 암시적(implicit)의 두가지 형태로 제공된다.
+
+명시적 강제는 단순히 한 유형에서 다른 유형으로의 변환이 발생한다는 것을 코드에서 볼 수 있는 반면,
+
+암시적 강제는 유형 변환이 다른 작업의 명확하지 않은 부작용으로 발생할 수 있는 경우이다.
+
+### Explicit 명시적
+
+```jsx
+var a = "42";
+var b = Number(a);
+
+a; // "42"
+b; // 42--the number!
+```
+
+### implicit 암시적
+
+```jsx
+var a = "42";
+var b = a * 1; // "42" implicitly coerced to 42 here
+a; // "42"
+b; // 42--the number!
+```
+
+---
+
+## Truthy & Falsy
+
+boolean값이 아니지만 boolean처럼 취급되는 값.
+
+### falsy값
+
+• "" (empty string)
+
+• 0, -0, NaN (invalid number)
+
+• null,undefined
+
+• false
+
+### falsy값이 아닌것이 truthy 값이다.
+
+• "hello"
+
+• 42
+
+• true
+
+• [ ],[ 1, "2", 3 ](arrays)
+
+• { },{ a: 42 }(objects)
+
+• function foo() { .. } (functions)
+
+---
+
+## Equality
+
+`==` : 강제변환이 허용되어 타입이 달라도 같다고 취급한다.
+
+`===` : 강제변환 허용되지 않아 타입까지 비교한다. strict equality.
+
+```jsx
+var a = "42";
+var b = 42;
+a == b; // true
+a === b; // false
+```
+
+많은 개발자가 `===`를 더 선호하는데, 저자는 조금 반대 의견이다.
+
+1. 비교의 값(측면이라고도 함)이 true 또는 false 값일 수 있을때 ==를 피하고 ===를 사용한다.
+
+2. 비교의 값 중 하나가 이러한 특정 값(0, "" 또는 []—빈 배열)일 수 있는 경우 ==를 피하고 ===를 사용한다.
+
+3. 다른 경우엔 ==를 쓰는게 더 안전하고 가독성이 좋다는 의견이다.
+
+---
+
+## Inequality
+
+```jsx
+var a = 41;
+var b = "42";
+var c = "43";
+
+a < b; // true
+b < c; // true
+```
+
+"bar" < "foo" 이렇게 비교도 가능.
+
+두 값이 모두 문자열이면 b < c와 마찬가지로 사전순으로 비교가 수행됩니다(사전과 같이 사전순).
+
+```jsx
+vara = 42;
+var b = "foo";
+a < b;
+a > b;
+a == b;
+// false
+// false
+// false
+```
+
+---
+
+## Variables
+
+변수는 a-z, A-Z, $, or \_.로 시작해야 한다.
+숫자도 포함될 수 있다.
+
+일반적으로 속성 이름에는 변수 식별자와 동일한 규칙이 적용됩니다.
+그러나 특정 단어는 변수로 사용할 수 없지만 속성 이름으로 사용할 수 있습니다.
+이러한 단어를 "예약어"라고 하며 JS 키워드(for, in, if 등)와 null, true, false를 포함합니다.
+
+---
+
+## Function Scopes
+
+var 키워드를 사용하여 현재 함수 범위에 속할 변수를 선언하거나 함수 외부의 최상위 수준에 있는 경우 전역 범위를 선언합니다.
+
+---
+
+## Hoisting
+
+var가 범위 내에 있을때 해당 선언은 전체 범위에 속하는 것으로 간주되며 어디에서나 액세스할 수 있다.
+
+var 선언이 자신을 포함하는 범위의 최상단으로 이동된 것 처럼 동작하는 것이다.
+
+---
+
+## Nested scopes
+
+변수를 선언하면 해당 범위와 모든 하위/내부 범위에서 사용할 수 있다.
+
+```jsx
+function foo() {
+    var a=1;
+function bar() {
+    var b=2;
+function baz() {
+    var c=3;
+console.log( a, b, c ); // 1 2 3 }
+}
+    baz();
+    console.log( a, b ); // 1 2
+} bar();
+    console.log( a ); // 1
+foo();
+```
+
+---
+
+## Conditionals
+
+조건문.
+if, else if, else 쓸 수 있다.
+
+### switch문
+
+```jsx
+switch (a) {
+  case 2:
+    // do something
+    break;
+  case 10:
+    // do another thing
+    break;
+  case 42:
+    // do yet another thing
+    break;
+  default:
+  // fallback to here
+}
+```
+
+```jsx
+switch (a) {
+  case 2:
+  case 10:
+    // some cool stuff
+    break;
+  case 42:
+    // other stuff
+    break;
+  default:
+  // fallback
+}
+```
+
+여기서 a가 2 또는 10이면 "some cool stuff" 코드 문을 실행한다.
+
+JavaScript에서 조건부의 또 다른 형태는 종종 "삼항 연산자"라고 불리는 "조건부 연산자"입니다.
+
+다음과 같이 단일 if..else 문의 보다 간결한 형태와 같습니다.
+
+```jsx
+var a = 42;
+var b = a > 41 ? "hello" : "world";
+
+// similar to:
+// if (a > 41) {
+//    b = "hello";
+// }
+// else {
+//    b = "world";
+// }
+```
+
+---
+
+## Strict Mode
+
+```jsx
+function foo() {
+  "use strict";
+  // this code is strict mode
+  function bar() {
+    // this code is strict mode
+  }
+}
+// this code is not strict mode
+
+("use strict");
+function foo() {
+  // this code is strict mode
+  function bar() {
+    // this code is strict mode
+  }
+}
+// this code is strict mode
+```
+
+---
+
+## Functions as Values
+
+함수 자체는 변수에 할당되거나 다른 함수에 전달되거나 다른 함수에서 반환되는 값일 수 있다.
+
+var foo = function() {
+// ..
+};
+var x = function bar(){
+// ..
+
+};
+
+# Immediately Invoked Function Expressions (IIFEs)
+
+```jsx
+(function IIFE() {
+  console.log("Hello!");
+})();
+// "Hello!"
+```
+
+이렇게 생긴 즉시 실행 함수란것도 있다.
+
+```jsx
+vara = 42;
+(function IIFE() {
+  vara = 10;
+  console.log(a);
+})();
+console.log(a);
+```
+
+IIFE 외부의 주변 코드에 영향을 미치지 않는 변수를 선언하는데 사용된다.
+
+```jsx
+var x = (function IIFE() {
+  return 42;
+})();
+x; // 42
+```
+
+---
+
+## Closure
+
+클로저는 함수 실행이 끝난 후에도 "기억"하고 함수의 범위(변수)에 계속 액세스하는 방법으로 생각할 수 있습니다.
+
+```jsx
+function makeAdder(x) {
+  // parameter `x` is an inner variable
+  // inner function `add()` uses `x`, so
+  // it has a "closure" over it
+  function add(y) {
+  return y + x;
+}
+return add;
+
+var plusOne = makeAdder(1);
+var plusTen = makeAdder(10);
+plusOne(3); // 4  <-- 1 + 3
+plusOne(41); // 42 <-- 1 + 41
+plusTen(13); // 23 <-- 10+13
+```
+
+1. makeAdder(1)를 호출하면 x를 1로 기억하는 내부 add(..)에 대한 참조를 다시 얻는다. 이 함수 참조를 plusOne(..)이라고 한다.
+2. makeAdder(10)를 호출하면 x를 10으로 기억하는 내부 add(..)에 대한 또 다른 참조를 다시 얻는다. 이 함수 참조를 plusTen(..)이라고 한다.
+3. plusOne(3)을 호출하면 1(x로 기억됨)에 3(내부 y)을 더하고 결과로 4를 얻는다.
+4. plusTen(13)을 호출하면 10(x로 기억됨)에 13(내부 y)을 더하고 결과로 23을 얻습니다.
+
+---
+
+## Modules
+
+JavaScript에서 클로저의 가장 일반적인 사용법은 모듈 패턴이다.
+
+```jsx
+function User() {
+  var username, password;
+  function doLogin(user, pw) {
+    username = user;
+    password = pw;
+    // do the rest of the login work
+  }
+
+  var publicAPI = {
+    login: doLogin,
+  };
+  return publicAPI;
+}
+// create a `User` module instance
+var fred = User();
+
+fred.login("fred", "12Battery34!");
+```
+
+new User로 쓰지않았고 User() 인스턴스화할 클래스가 아닌 함수일 뿐이다.
+new를 사용하는것은 부적절하고 자원을 낭비한다고 함.
+
+User()를 실행하면 User 모듈의 인스턴스가 생성된다.
+완전히 새로운 범위, 내부 변수/함수 각각의 새로운 복사본이 생성됨.
+그 인스턴스를 fred에 할당.
+User()를 다시 실행하면 fred와 완전히 분리된 새 인스턴스를 얻게된다.
+
+---
+
+## this Identifier
+
+```jsx
+function foo() {
+  console.log(this.bar);
+}
+
+var bar = "global";
+
+var obj1 = {
+  bar: "obj1",
+  foo: foo,
+};
+
+var obj2 = {
+  bar: "obj2",
+};
+
+// --------
+foo(); // "global" 함수 바깥의 bar를 가져옴.
+obj1.foo(); // "obj1"
+foo.call(obj2); // "obj2"
+new foo(); // undefined
+```
+
+---
+
+## Prototypes
+
+<img src="/img/harry/prototype.png" alt="prototype" style={{ width: 600 }} />
+
+속성은 실제로 bar 객체에 존재하지 않지만 bar는 foo에 프로토타입 링크되어 있기 때문에 JavaScript는 자동으로 foo 객체를 찾는 것.
+
+"동작위임(delegate)"이라고 하는 패턴입니다. 여기에서 연결된 개체가 필요한 동작의 일부에 대해 하나에서 다른 개체로 위임할 수 있도록 의도적으로 디자인합니다.
+
+---
+
+## Old & New
+
+JS에는 새로운 추가기능이 있으며 반드시 이전 브라우저에서 사용할 수 잇는것은 아니다.
+
+최신 JS를 구형 브라우저에 가져오는데 사용할 수 있는 두가지 주요 기술이 있다.
+
+폴리필링, 트랜스파일링.
+Polyfilling, Transfiling
+
+---
+
+## Polyfilling
+
+새로운 기능의 정의를 취하고
+
+older environment 에서 동작할 수 있는 코드 조각을 생성하는 것.
+
+예를 들어, ES6은 원래 isNaN(..) 유틸리티를 사용하지 않고 NaN 값에 대한 정확하고 버그가 없는 검사를 제공하기 위해 Number.isNaN(..)이라는 유틸리티를 정의한다.
+
+그러나 최종 사용자가 ES6 브라우저를 사용하는지 여부에 관계없이 코드에서 사용할 수 있도록 해당 유틸리티를 쉽게 폴리필할 수 있다.
+
+모든 새로운 기능이 완전히 폴리필 가능한 것은 아니다.
+
+직접 구현하는것 보다 ES5-Shim and ES6-Shim 에서 제공하는 것과 같이 신뢰할 수 있는 폴리필 세트를 사용하는게 좋다.
+
+---
+
+## Transpiling
+
+최신 코드를 이전 코드로 변환한다.
+
+변환 + 컴파일의 용어인 트랜스파일링이라고 한다.
+
+코드를 새 구문 형식으로 작성하지만 브라우저에 배포하는 것은 이전 구문 형식으로 변환된 코드.
+
+code linter 또는 minifier를 빌드 프로세스에 삽입한다.
+
+그렇다면 이전 코드를 직접 작성하지 않는 이유는 무엇일까.
+
+1. 새 구문이 더 가독성이 좋고 유지관리가 편할 수 있다.
+
+2. 협업에 있어서도 더 새롭고 깔끔한 문장 작성을 선호해야 하기 때문이다.
+
+3. 최신 브라우저에 새 구문을 활용하여 브라우저 성능 최적화를 활용할 수 있다.
+
+4. 새 구문을 일찍 사용하면 현실적인 테스트를 하는것이므로 JavaScript 위원회에 더 빠른 피드백을 제공하여 고칠 수 있다.
+
+transpiling 예제)
+
+```jsx
+function foo(a = 2) {
+  console.log(a);
+}
+
+foo(); // 2
+foo(42); // 42
+
+function foo() {
+  var a = arguments[0] !== void 0 ? arguments[0] : 2;
+  console.log(a);
+}
+```
+
+arguments[0] 값이 void 0(undefined)인지 확인하고, 그렇다면 2 기본값을 제공한다. 그렇지 않으면 전달된 항목을 할당한다.
+
+구형 브라우저에서도 더 나은 구문을 사용할 수 있게 된 것 외에도
+트랜스파일된 코드를 보면 실제로 의도한 동작이 더 명확하게 설명된다.
+
+```jsx
+Babel (formerly 6to5) Transpiles ES6+ into ES5
+
+Traceur
+Transpiles ES6, ES7, and beyond into ES5
+
+```
+
+---
+
+## Non-JavaScript
+
+현실은 대부분의 JS가 브라우저와 같은 환경에서 실행되고 상호 작용하도록 작성되었다는 것.
+
+코드에 작성하는 많은 부분은 엄밀히 말하면 JavaScript에 의해 직접 제어되지 않는다.
+
+```jsx
+var el = document.getElementByID("foo");
+```
+
+문서 변수는 코드가 브라우저에서 실행될 때 전역 변수로 존재한다.
+
+JS 엔진에서 제공하지 않으며 JavaScript 사양에 의해 특별히 제어되지도 않는다.
+
+일반적인 JS 객체와 매우 흡사한 형태를 취하지만 실제로는 그렇지 않다.
+
+'호스트 객체'라고 하는 특수 객체이다.
+
+getElementByID(..) 메서드는 일반적인 JS 함수처럼 보이지만 브라우저에서 DOM이 제공하는 내장 메서드에 대한 인터페이스일 뿐.
+
+일부(최신 세대) 브라우저에서는 이 레이어가 JS에 있을 수도 있지만 전통적으로 DOM과 그 동작은 C/C++와 비슷한 것으로 구현됩니다.
+
+사용자의 브라우저 창에 메시지 상자를 나타내는 alert(..)는 JS 엔진 자체가 아니라 브라우저에 의해 JS 프로그램에 제공된다.
+
+호출은 브라우저 내부로 메시지를 보내고 메시지 상자 그리기 및 표시를 처리한다.
+
+console.log(..)도 마찬가지.
+
+---
+
+## YDKJ
+
+JS가 "해석된 언어(interpreted language)"이므로 컴파일되지 않는다는 일반적인 오해를 폭로하는 것으로 시작한다.
+
+JS 엔진은 실행 직전 때로는 실행중에 코드를 컴파일 한다.
+
+따라서 컴파일러가 변수 및 함수 선언을 찾고 처리하는 방법을 이해하기 위해 코드에 대한 컴파일러의 접근 방식을 더 깊이 이해해야 한다.
+
+그 과정에서 JS 변수 범위 관리에 대한 일반적인 비유인 '호이스팅'을 본다.
+
+어휘 범위(lexical scope)에 대한 비판적 이해는 책의 마지막 챕터 클로저 탐색의 기초가 된다.
+
+먼저 스코프가 어떻게 작동하는지 확실히 이해해야만 클로저를 이해할 수 있다.
+
+클로저의 중요한 응용 프로그램 중 하나는 앞에서 소개한 모듈 패턴이다.
+
+### this & Object Prototypes
+
+this 키워드는 해당 함수가 실행되는 방식에 따라 동적으로 바인딩 되며 이 바인딩을 이해하고 완전히 결정하기 위한 네 가지 간단한 규칙이 있다.
+
+저자는 암시적 명시적 강제를 유용하고 과소평가된 도구로 본다.
