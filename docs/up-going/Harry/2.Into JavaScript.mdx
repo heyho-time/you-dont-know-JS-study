@@ -38,7 +38,7 @@ typeof a; // "object"
 ## Object
 
 ```jsx
-varobj = {
+var obj = {
   a: "hello world",
   b: 42,
   c: true,
@@ -100,6 +100,11 @@ typeof foo(); // "number"
 typeof foo.bar; // "string"
 ```
 
+<span style={{ color: "#ff841f", fontWeight: "bold" }}>
+  이 부분이 좀 신기했다. 함수도 객체의 하위 유형으로서 객체랑 똑같이 사용할 수
+  있다.
+</span>
+
 ---
 
 ## Built-In Type Methods
@@ -131,6 +136,8 @@ b.toFixed(4); // "3.1416"
 
 ### Explicit 명시적
 
+Number라는 내장함수를 이용해 명시적으로 강제 해줬다.
+
 ```jsx
 var a = "42";
 var b = Number(a);
@@ -140,6 +147,8 @@ b; // 42--the number!
 ```
 
 ### implicit 암시적
+
+내장함수 이용없이 암시적 강제.
 
 ```jsx
 var a = "42";
@@ -216,10 +225,12 @@ b < c; // true
 
 "bar" < "foo" 이렇게 비교도 가능.
 
-두 값이 모두 문자열이면 b < c와 마찬가지로 사전순으로 비교가 수행됩니다(사전과 같이 사전순).
+두 값이 모두 문자열이면 b < c와 마찬가지로 사전순으로 비교가 수행됨.
+
+두 값이 모두 문자열이 아니면 안됨.
 
 ```jsx
-vara = 42;
+var a = 42;
 var b = "foo";
 a < b;
 a > b;
@@ -262,17 +273,20 @@ var 선언이 자신을 포함하는 범위의 최상단으로 이동된 것 처
 
 ```jsx
 function foo() {
-    var a=1;
-function bar() {
-    var b=2;
-function baz() {
-    var c=3;
-console.log( a, b, c ); // 1 2 3 }
-}
+  var a = 1;
+  function bar() {
+    var b = 2;
+    function baz() {
+      var c = 3;
+
+      console.log(a, b, c); // 1 2 3
+    }
     baz();
-    console.log( a, b ); // 1 2
-} bar();
-    console.log( a ); // 1
+    console.log(a, b); // 1 2
+  }
+  bar();
+  console.log(a); // 1
+}
 foo();
 ```
 
@@ -315,7 +329,15 @@ switch (a) {
 }
 ```
 
+fall through를 이용.
+
+break를 생략하면 해당 케이스가 일치하거나 실행되는 경우 해당 케이스 일치에 관계없이 다음 케이스의 명령문으로 실행이 계속된다.
+
 여기서 a가 2 또는 10이면 "some cool stuff" 코드 문을 실행한다.
+
+<br />
+<br />
+<br />
 
 JavaScript에서 조건부의 또 다른 형태는 종종 "삼항 연산자"라고 불리는 "조건부 연산자"입니다.
 
@@ -358,19 +380,34 @@ function foo() {
 // this code is strict mode
 ```
 
+strict 모드를 고수하면 일반적으로 엔진에서 코드를 더 최적화할 수 있다.
+
+```jsx
+function foo() {
+  "use strict";
+  // turn on strict mode
+  a = 1;
+  // `var` missing, ReferenceError
+}
+foo();
+```
+
+암시적 자동 전역 변수 선언이 var를 생략하는 것을 허용하지 않는다.
+
 ---
 
 ## Functions as Values
 
 함수 자체는 변수에 할당되거나 다른 함수에 전달되거나 다른 함수에서 반환되는 값일 수 있다.
 
-var foo = function() {
-// ..
+```jsx
+var foo = function () {
+  // ..이름이 없는 익명함수 라고함. anonymous
 };
-var x = function bar(){
-// ..
-
+var x = function bar() {
+  // ..
 };
+```
 
 # Immediately Invoked Function Expressions (IIFEs)
 
@@ -384,12 +421,16 @@ var x = function bar(){
 이렇게 생긴 즉시 실행 함수란것도 있다.
 
 ```jsx
-vara = 42;
+var a = 42;
+
 (function IIFE() {
-  vara = 10;
+  var a = 10;
   console.log(a);
 })();
 console.log(a);
+
+//10
+//42
 ```
 
 IIFE 외부의 주변 코드에 영향을 미치지 않는 변수를 선언하는데 사용된다.
@@ -398,6 +439,7 @@ IIFE 외부의 주변 코드에 영향을 미치지 않는 변수를 선언하�
 var x = (function IIFE() {
   return 42;
 })();
+
 x; // 42
 ```
 
@@ -405,7 +447,7 @@ x; // 42
 
 ## Closure
 
-클로저는 함수 실행이 끝난 후에도 "기억"하고 함수의 범위(변수)에 계속 액세스하는 방법으로 생각할 수 있습니다.
+클로저는 함수 실행이 끝난 후에도 "기억"하고 함수의 범위(변수)에 계속 액세스하는 방법으로 생각할 수 있다.
 
 ```jsx
 function makeAdder(x) {
@@ -433,11 +475,12 @@ plusTen(13); // 23 <-- 10+13
 
 ## Modules
 
-JavaScript에서 클로저의 가장 일반적인 사용법은 모듈 패턴이다.
+JavaScript에서 클로저의 가장 일반적인 사용법은 **모듈 패턴**이다.
 
 ```jsx
 function User() {
   var username, password;
+
   function doLogin(user, pw) {
     username = user;
     password = pw;
@@ -447,6 +490,7 @@ function User() {
   var publicAPI = {
     login: doLogin,
   };
+
   return publicAPI;
 }
 // create a `User` module instance
@@ -484,9 +528,12 @@ var obj2 = {
 };
 
 // --------
-foo(); // "global" 함수 바깥의 bar를 가져옴.
-obj1.foo(); // "obj1"
-foo.call(obj2); // "obj2"
+foo();
+// "global" 함수 바깥의 bar를 가져옴. strict모드에선 bar에 액세스 할 수 없다.
+obj1.foo();
+// "obj1" 여기서 this는 obj1 객체기 때문.
+foo.call(obj2);
+// "obj2"  obj2를 this로 설정.
 new foo(); // undefined
 ```
 
@@ -498,20 +545,19 @@ new foo(); // undefined
 
 속성은 실제로 bar 객체에 존재하지 않지만 bar는 foo에 프로토타입 링크되어 있기 때문에 JavaScript는 자동으로 foo 객체를 찾는 것.
 
-"동작위임(delegate)"이라고 하는 패턴입니다. 여기에서 연결된 개체가 필요한 동작의 일부에 대해 하나에서 다른 개체로 위임할 수 있도록 의도적으로 디자인합니다.
+"동작위임(delegate)"이라고 하는 패턴입니다. 여기에서 연결된 객체가 필요한 동작의 일부에 대해 하나에서 다른 객체로 위임할 수 있도록 의도적으로 디자인합니다.
 
 ---
 
 ## Old & New
 
-JS에는 새로운 추가기능이 있으며 반드시 이전 브라우저에서 사용할 수 잇는것은 아니다.
+JS에는 새로운 추가기능이 있으며 반드시 이전 브라우저에서 사용할 수 있는것은 아니다.
 
 최신 JS를 구형 브라우저에 가져오는데 사용할 수 있는 두가지 주요 기술이 있다.
 
-폴리필링, 트랜스파일링.
-Polyfilling, Transfiling
+`폴리필링, 트랜스파일링. (Polyfilling, Transfiling)`
 
----
+<br />
 
 ## Polyfilling
 
@@ -527,7 +573,7 @@ older environment 에서 동작할 수 있는 코드 조각을 생성하는 것.
 
 직접 구현하는것 보다 ES5-Shim and ES6-Shim 에서 제공하는 것과 같이 신뢰할 수 있는 폴리필 세트를 사용하는게 좋다.
 
----
+<br />
 
 ## Transpiling
 
@@ -570,11 +616,10 @@ arguments[0] 값이 void 0(undefined)인지 확인하고, 그렇다면 2 기본�
 구형 브라우저에서도 더 나은 구문을 사용할 수 있게 된 것 외에도
 트랜스파일된 코드를 보면 실제로 의도한 동작이 더 명확하게 설명된다.
 
-```jsx
+```
 Babel (formerly 6to5) Transpiles ES6+ into ES5
 
-Traceur
-Transpiles ES6, ES7, and beyond into ES5
+Traceur Transpiles ES6, ES7, and beyond into ES5
 
 ```
 
@@ -604,7 +649,7 @@ getElementByID(..) 메서드는 일반적인 JS 함수처럼 보이지만 브라
 
 사용자의 브라우저 창에 메시지 상자를 나타내는 alert(..)는 JS 엔진 자체가 아니라 브라우저에 의해 JS 프로그램에 제공된다.
 
-호출은 브라우저 내부로 메시지를 보내고 메시지 상자 그리기 및 표시를 처리한다.
+alert 호출하면 브라우저 내부로 메시지를 보내고 메시지 상자 그리기 및 표시를 처리한다.
 
 console.log(..)도 마찬가지.
 
@@ -626,8 +671,10 @@ JS 엔진은 실행 직전 때로는 실행중에 코드를 컴파일 한다.
 
 클로저의 중요한 응용 프로그램 중 하나는 앞에서 소개한 모듈 패턴이다.
 
-### this & Object Prototypes
+...
 
-this 키워드는 해당 함수가 실행되는 방식에 따라 동적으로 바인딩 되며 이 바인딩을 이해하고 완전히 결정하기 위한 네 가지 간단한 규칙이 있다.
+앞으로 책에서 나아갈 방향성을 제시.
 
-저자는 암시적 명시적 강제를 유용하고 과소평가된 도구로 본다.
+우리가 알고 있다고 생각했지만 완전히 알지 못했던 부분을 탐구하자.
+
+We don't know JavaScript, But we will.
