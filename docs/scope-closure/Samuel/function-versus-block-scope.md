@@ -447,13 +447,14 @@ var a = 2;
 
 > **TL;DR 🔖**
 >
-> -
+> - 함수가 일반적인 스코프 단위이지만 유일하지는 않고, 대신 **블록 스코프**를 활용하여 코드 유지 관리가 훨씬 더 좋고 깨끗해질 수 있습니다.
+> - 블록 스코프의 예시로 **`with` 와 `try/catch` 구문, `let`, `const` 등**이 있습니다.
 
 <br />
 
 **함수는 가장 일반적인 스코프 단위**이며 자바스크립트에서 가장 널리 사용되는 설계 접근 방식이지만 **다른 스코프 단위도 가능**하며 이러한 다른 스코프 단위를 사용하면 **코드 유지 관리가 훨씬 더 좋고 깨끗해질 수 있습니다.**
 
-- 자바스크립트 이외의 많은 언어는 **블록 스코프**를 지원하므로 해당 언어의 개발자는 이러한 사고 방식에 익숙하지만, 주로 자바스크립트에서 작업한 사람들은 이 개념이 약간 생소할 수도 있습니다.ㄴ
+- 자바스크립트 이외의 많은 언어는 **블록 스코프**를 지원하므로 해당 언어의 개발자는 이러한 사고 방식에 익숙하지만, 주로 자바스크립트에서 작업한 사람들은 이 개념이 약간 생소할 수도 있습니다.
 - 그러나 블록 스코프 방식으로 한 줄의 코드를 작성한 적이 없더라도, 자바스크립트에서 다음과 같은 **매우 일반적인 관용 표현**에 여전히 익숙할 것입니다.
 
 ```js
@@ -541,7 +542,7 @@ console.log(err); // ReferenceError: `err` not found
     이 동작이 지정되고 거의 모든 표준 자바스크립트 환경(이전 IE 제외)에 적용되지만, 동일한 스코프에 동일한 식별자 이름으로 <code>error</code> 변수를 선언하는 두 개 이상의 <code>catch</code> 절이 있는 경우 린터(linter)는 여전히 불만이 있는 것 같습니다. 변수가 안전하게 블록 스코프이기 때문에 이것은 실제로 재정의가 아니지만, 린터는 여전히 이에 대해 불만이 있습니다.
     <br/>
     <br/>
-    이러한 불필요한 경고를 피하기 위해 일부 개발자들은 <strong>`catch` 변수의 이름을 `err1`, `err2` 등으로 지정</strong>합니다. 다른 개발자는 <strong>중복 변수 이름에 대한 린트 검사를 해제</strong>합니다.
+    이러한 불필요한 경고를 피하기 위해 일부 개발자들은 <strong><code>catch</code> 변수의 이름을 <code>err1</code>, <code>err2</code> 등으로 지정</strong>합니다. 다른 개발자는 <strong>중복 변수 이름에 대한 린트 검사를 해제</strong>합니다.
   </span>
 </div>
 
@@ -588,7 +589,7 @@ console.log(bar); // ReferenceError
 
 4장에서는 **선언이 발생하는 스코프에 존재하는 것으로 간주되는 선언**에 대한 내용인 **호이스팅**에 대해 다룰 것입니다.
 
-- 그러나 `let` 으로 만든 선언은 **해당 선언이 나타나는 블록의 스코프로 호이스팅 되지 않습니다.**
+- 그러나 `let` 으로 만든 선언은 **해당 선언이 나타나는 블록의 전체 스코프로 호이스팅 되지 않습니다.**
 
 ```js
 {
@@ -596,3 +597,189 @@ console.log(bar); // ReferenceError
   let bar = 2;
 }
 ```
+
+<br/>
+
+### Garbage collection ❔
+
+---
+
+블록 스코프 지정이 유용한 다른 이유는 **메모리 회수를 위한 클로저 및 가비지 콜렉션**과 관련이 있습니다.
+
+> **가비지 콜렉션(Garbage collection) 🔍**
+>
+> 가비지 콜렉션은 메모리 관리 기법 중의 하나로, 프로그램이 동적으로 할당했던 메모리 영역 중에서 필요없게 된 영역을 해제하는 기능이다.
+
+- 여기서는 간략하게 설명하지만 클로저 메커니즘은 5장에서 자세히 설명합니다.
+
+```js
+function process(data) {
+  // do something interesting
+}
+
+var someReallyBigData = { ... };
+
+process(someReallyBigData);
+
+var btn = document.getElementById("my_button");
+
+btn.addEventListener(
+  "click",
+  function click(evt) {
+    console.log("button clicked");
+  },
+  /*capturingPhase=*/ false
+);
+```
+
+`click` 함수 클릭 핸들러 콜백에는 `someReallyBigData` 변수가 전혀 필요하지 않습니다.
+
+- 즉, 이론적으로 `process(..)` 가 실행된 후 메모리를 많이 차지하는 데이터 구조가 가비지 콜렉팅의 대상이 될 수 있습니다.
+  - 그러나 `click` 함수가 전체 스코프에 대해 클로저를 갖기 때문에, 자바스크립트 엔진이 여전히 구조를 유지해야 할 가능성이 매우 높습니다.
+
+블록 스코프 지정은 이 문제를 해결할 수 있으므로, **엔진이 `someReallyBigData` 를 유지할 필요가 없다는 것**을 더 명확하게 알릴 수 있습니다.
+
+```js
+function process(data) {
+  // do something interesting
+}
+
+// anything declared inside this block can go away after!
+{
+  let someReallyBigData = { ... };
+  process(someReallyBigData);
+}
+
+var btn = document.getElementById("my_button");
+
+btn.addEventListener(
+  "click",
+  function click(evt) {
+    console.log("button clicked");
+  },
+  /*capturingPhase=*/ false
+);
+```
+
+**로컬로 바인딩할 변수에 대한 명시적 블록을 선언하는 것**은 강력한 도구입니다.
+
+<br/>
+
+### let loops ❔
+
+---
+
+`let` 의 역할이 빛나는 경우는 이전에 논의한 **`for` 루프의 경우** 입니다.
+
+```js
+for (let i = 0; i < 10; i++) {
+  console.log(i);
+}
+console.log(i); // ReferenceError
+```
+
+**`for` 루프 헤더의 `let`** 은 **`i` 를 `for` 루프 본문에 바인딩**할 뿐만 아니라, 실제로 **루프의 각 반복에 다시 바인딩**하여 이전 루프 반복의 끝에서 값을 다시 할당해야합니다.
+
+다음은 발생하는 반복 당 바인딩 동작을 설명하는 또 다른 방법입니다.
+
+```js
+{
+  let j;
+
+  for (j = 0; j < 10; j++) {
+    let i = j; // re-bound for each iteration!
+    console.log(i);
+  }
+}
+```
+
+> 이 **반복 당 바인딩**이 흥미로운 이유는 클로저에 대해 논의할 때 5장에서 명확해질 것입니다.
+
+`let` 선언은 둘러싸는 함수의 스코프(또는 전역)가 아닌 **임의의 블록에 연결**되기 때문에, 기존 코드가 함수 범위 `var` 선언에 숨겨진 의존성을 갖고 `var` 를 `let` 으로 교체하는 경우 리팩토링 할 때 추가적인 주의가 필요할 수 있습니다.
+
+```js
+var foo = true,
+  baz = 10;
+
+if (foo) {
+  var bar = 3;
+  if (baz > bar) {
+    console.log(baz);
+  }
+  // ...
+}
+```
+
+이 코드는 상당히 쉽게 다음과 같이 리팩토링됩니다.
+
+```js
+var foo = true,
+  baz = 10;
+
+if (foo) {
+  var bar = 3;
+  // ...
+}
+
+if (baz > bar) {
+  console.log(baz);
+}
+```
+
+그러나 블록 스코프 변수를 사용할 때는 다음과 같은 변경사항에 주의하세요.
+
+```js
+var foo = true,
+  baz = 10;
+
+if (foo) {
+  let bar = 3;
+  if (baz > bar) {
+    // <-- don't forget `bar` when moving!
+    console.log(baz);
+  }
+}
+```
+
+이러한 시나리오에 더 강력하고 유지 및 관리와 리팩토링이 더 쉬운 코드를 제공할 수 있는 **대체(보다 명시적인) 블록 스코프 지정 스타일**은 부록 B를 참조하세요.
+
+<br/>
+
+### const ❓
+
+---
+
+`let` 외에도 `ES6` 는 블록 스코프 변수를 생성하지만 **값이 고정(상수)인 `const`** 를 도입했습니다.
+
+- `const` 로 선언한 **변수의 값을 변경하고자 하면 오류가 발생**합니다.
+
+```js
+var foo = true;
+
+if (foo) {
+  var a = 2;
+  const b = 3; // block-scoped to the containing `if`
+
+  a = 3; // just fine!
+  b = 4; // error!
+}
+
+console.log(a); // 3
+console.log(b); // ReferenceError!
+```
+
+<br/>
+
+## Review ❕
+
+---
+
+- **함수**는 자바스크립트에서 **가장 일반적인 스코프 단위**입니다.
+- 다른 함수 내에서 선언된 변수와 함수는 본질적으로 **둘러싸인 스코프에 숨겨져 있습니다.**
+  - 이는 좋은 소프트웨어의 의도적인 설계 원칙입니다.
+- 그러나 함수가 유일한 스코프 단위는 아니며, 블록 스코프는 변수와 함수가 둘러싸는 함수에만 속하지 않고 **코드의 임의 블록에 속할 수 있다는 것**을 보여줍니다.
+- ES3부터 `try/catch` 구조는 **`catch` 절에 블록 스코프를 갖습니다.**
+- ES6에서는 임의의 코드 블록에서 변수 선언을 허용하기 위한 **`let` 키워드**가 도입되었습니다.
+- `if (..) { let a = 2; }` 는 본질적으로 `if` 의 `{...}` **블록 스코프를 가로채 그곳에 연결하는 변수 `a` 를 선언**합니다.
+- 일부 사람들은 그것을 믿는 것처럼 보이지만 블록 스코프로 `var` 함수 스코프를 완전히 대체해서는 안됩니다.
+- 두 가지 기능이 공존하며 개발자는 더 좋고, 읽기 쉽고, 유지 관리가 쉬운 코드를 생성하기 위해 각각 적절한 경우 함수 스코프와 블록 스코프 기술을 모두 사용할 수 있어야합니다.
