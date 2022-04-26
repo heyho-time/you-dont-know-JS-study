@@ -1,0 +1,708 @@
+---
+title: 5. Scope Closure
+tags: [Scope Closure]
+sidebar_position: 5
+---
+
+scope 작동방식에 대한 이해와 함께 이 시점에 도달했습니다.
+
+우리는 중요하지만 지속적으로 파악하기 어렵고
+
+거의 신화적인 언어의 일부인 **closure**에 주의를 기울입니다.
+
+---
+
+## Enlightenment (계발)
+
+작자는 closure를 이해하는데 몇 년이 걸렸다고 합니다.
+
+그러면서 clousure는 우리의 주위에 있고 그것을 인식, 수용하기만 하면 된다고 합니다.
+
+새로운 구문과 패턴을 배워야 하는 특별한 옵션이나 도구가 아니고 Luke가 훈련한 것처럼 휘두르고 마스터하는 법을 배워야 하는 무기도 아니라고 합니다.
+
+클로저는 Lexical scope에 의존하는 코드를 작성한 결과 발생합니다.
+
+클로저를 활용하기 위해 의도적으로 클로저를 만들 필요조차 없다고 합니다.
+
+깨달음의 순간은 다음과 같아야 합니다.
+
+<p style={{ fontSize: 19, color: "orange" }}>
+  '오, 클로저는 이미 내 코드 전체에서 발생하고 있구나'
+</p>
+
+---
+
+## Nitty Gritty (핵심, 가장 중요한 것)
+
+다음은 클로저를 이해하고 인식하기 위해 알아야 할 사항에 대한 간단한 정의입니다.
+
+closure는 함수가 lexical scope 밖에서 실행될 때도 함수가 어휘 범위를 기억하고 액세스할 수 있는 경우입니다.
+
+그 정의를 설명하기 위해 몇 가지 코드를 살펴보겠습니다.
+
+```jsx
+function foo() {
+  var a = 2;
+
+  function bar() {
+    console.log(a); // 2
+  }
+
+  bar();
+}
+
+foo();
+```
+
+함수 bar()는 lexical scope 조회규칙 때문에 바깥쪽 붐위의 변수 a에 액세스 할 수 있습니다.
+
+이것도 closure일까요?
+
+기술적으로 아마도요. 그러나 정확하지는 않습니다.
+
+bar()참조를 설명하는 가장 정확한 방법은 lexical scope 조회 규칙을 통해 이루어지며 이러한 규칙은 closure의 일부일 뿐입니다.
+
+학문적인 관점에서 위의 코드에 대해 말하자면,
+
+**함수 bar()가 foo()의 범위에 대해 클로저를 가지고 있다는 것입니다.**
+
+약간 다르게 말하면 bar()가 foo()의 범위를 닫는다고 합니다.
+
+그러나 이러한 방식으로 정의된 클로저는 직접 관찰할 수 없으며 해당 스니펫에서 실행된 클로저도 볼 수 없습니다.
+
+우리는 lexical scope를 분명히 볼 수 있지만 클로저는 코드 이면에서 일종의 신비한 이동 그림자로 남아 있습니다.
+
+클로저를 완전히 밝히는 코드를 고려해 보겠습니다.
+
+```jsx
+function foo() {
+  var a = 2;
+  function bar() {
+    console.log(a);
+  }
+  return bar;
+}
+var baz = foo();
+baz(); // 2 -- Whoa, closure was just observed, man.
+```
+
+foo()를 실행한 후 반환된 값(내부 bar() 함수)을 baz라는 변수에 할당하고 실제로 baz()를 호출합니다.
+
+bar()는 확실히 실행됩니다. 그러나 이 경우 선언된 어휘 범위 밖에서 실행됩니다.
+
+foo()가 실행된 후 일반적으로 내부 foo()의 범위는 사라질 것입니다.
+
+엔진이 더이상 사용되지 않으면 메모리를 해제하는 garbage collector를 사용하기 때문입니다.
+
+그러나 closure의 마법은 이런 이리 일어나지 않게 합니다.
+
+그 내부 범위는 실제로 여전히 사용중이므로 사라지지 않습니다.
+
+선언된 위치 덕분에 bar()는 foo()의 내부 범위에 대한 lexical scope closure를 가지며, 이는 bar()가 나중에 참조할 수 있도록 해당 범위를 유지합니다.
+
+bar()에는 여전히 해당 범위에 대한 참조가 있으며 해당 참조를 클로저라고 합니다.
+
+따라서 baz가 호출될 때 bar는 foo의 lexical scope에 액세스 할 수 있습니다.
+
+함수가 값으로 전달될 수 있고 실제로 다른 위치에서 호출될 수 있는 다양한 방법은 모두 클로저를 관찰/실행하는 예입니다.
+
+```jsx
+function foo() {
+  var a = 2;
+  function baz() {
+    console.log(a); // 2
+  }
+
+  bar(baz);
+}
+
+function bar(fn) {
+  fn(); // look ma, I saw closure!
+}
+```
+
+내부 함수 baz를 전달하고 그 내부 함수를 호출합니다.
+
+foo()의 내부 범위에 대한 closure는 a에 액세스하여 관찰됩니다.
+
+이러한 함수 전달도 간접적일 수 있습니다.
+
+```jsx
+var fn;
+
+function foo() {
+  var a = 2;
+
+  function baz() {
+    console.log(a);
+  }
+  fn = baz; // assign baz to global variable
+}
+
+function bar() {
+  fn(); // look ma, I saw closure!
+}
+
+foo();
+bar(); // 2
+```
+
+내부 기능을 lexical scope 외부로 전송하기 위해 사용하는 함수가 무엇이든간에,
+
+원래 선언된 위치에 대한 scope참조를 유지하고 우리가 그것을 실행할 때마다 해당 클로저가 실행됩니다.
+
+---
+
+## Now I Can See
+
+이전 코드 스니펫은 다소 학술적이며 클로저 사용을 설명하기 위해 인위적으로 구성되었습니다.
+
+클로저가 당신의 기존 코드에서 당신 주위에 있는 어떤 것이라고 했었는데,이제 그 진실을 봅시다.
+
+```jsx
+function wait(message) {
+  setTimeout(function timer() {
+    console.log(message);
+  }, 1000);
+}
+
+wait("Hello, closure!");
+```
+
+setTimeout()에는 timer()함수가 들어갑니다.
+
+타이머에는 wait() scope에 대한 closure가 있으며 실제로 변수 메시지에 대한 참조를 유지하고 사용합니다.
+
+wait(..)를 실행한 후 1000밀리초가 지나면 내부 범위가 사라진 지 오래여야 합니다. 익명 함수는 여전히 해당 범위에 대해 클로저를 가지고 있습니다.
+
+엔진의 깊숙한 곳에서 내장 유틸리티 setTimeout(..)은 fn 또는 func 또는 이와 유사한 것으로 불리는 일부 매개변수에 대한 참조를 가지고 있습니다.
+
+엔진은 내부 타이머 함수를 호출하는 해당 함수를 호출하고 lexical scope 참조는 여전히 손상되지 않습니다.
+
+## Note
+
+3장에서는 IIFE 패턴을 도입했습니다.
+
+IIFE가 관찰된 closure의 예라는 말에 작자는 동의하지 않습니다.
+
+```jsx
+var a = 2;
+(function IIFE() {
+  console.log(a);
+})();
+```
+
+이 코드는 작동하지만 엄밀히는 클로저를 관찰한 것이 아닙니다.
+
+함수(여기서 IIFE라고 명명함)는 lexical scope 밖에서 실행되지 않기 때문입니다. 선언된 것과 동일한 범위에서 여전히 호출됩니다.
+
+클로저가 아닌 일반적인 lexical scope의 조회를 통해 찾을 수 있습니다.
+
+IIFE자체가 closure의 예는 아니지만 절대적으로 범위를 생성하며 폐쇄될 수 있는 scope를 생성하는데 사용하는 가장 일반적인 도구 중 하나입니다.
+
+따라서 IIFE는 자체적으로 closure를 실행하지 않더라도 밀접한 관련이 있습니다.
+
+---
+
+## Loops and Closure
+
+closure를 설명하는 데 사용되는 가장 일반적이고 표준적인 예에는for루프가 포함됩니다.
+
+```jsx
+for (var i = 1; i <= 5; i++) {
+  setTimeout(function timer() {
+    console.log(i);
+  }, i * 1000);
+}
+```
+
+## Note
+
+개발자가 클로저를 이해하지 못하는 실수가 너무 흔하기 때문에 린터는 함수를 루프 안에 넣을때 종종 불평합니다.
+
+closure의 모든 권한을 활용하여 여기에서 올바르게 수행하는 방법을 설명합니다.
+
+위 코드 조각은 일반적으로 12345 가 한번에 하나씩 인쇄되는 동작을 할것으로 예상됩니다.
+
+실제로 코드를 실행하면 1초 간격으로 5번 6이 출력됩니다.
+
+<p style={{ fontSize: 20, color: "orange" }}>에엥!?~!@?</p>
+
+먼저 6이 어디서 왔는가.
+
+루프의 종료 조건은 i가 <=5가 아닐때 입니다.
+
+출력은 루프가 종료된 후 i의 최종 값을 반영합니다.
+
+타임아웃 함수 콜백은 루프가 완료된 후 모두 잘 실행됩니다. 실제로 타이머가 진행됨에 따라 각 반복에서 setTimeout(.., 0)이더라도 이러한 모든 함수 콜백은 루프가 완료된 후에도 엄격하게 실행되므로
+
+매번 6을 인쇄합니다.
+
+우리가 의미적으로 암시한 대로 실제로 동작하도록 하기 위해 코드에서 누락된 것은 무엇입니까?
+
+누락된 점은 루프의 각 반복이 반복 시 i의 자체 복사본을 "캡처"한다는 것을 암시하려고 한다는 것입니다.
+
+5개의 타임아웃 콜백 각각이 루프 없이 차례로 선언된 경우와 차이가 없습니다.
+
+더 폐쇄된 범위가 필요합니다. 특히 루프의 각 반복에 대해 새로운 폐쇄 범위가 필요합니다.
+
+IIFE는 함수를 선언하고 즉시 실행하여 범위를 생성한다는 것을 3장에서 배웠습니다.
+
+```jsx
+for (var i = 1; i <= 5; i++) {
+  (function () {
+    setTimeout(function timer() {
+      console.log(i);
+    }, i * 1000);
+  })();
+}
+```
+
+이렇게하면 6이 1초에 한번씩 5번 출력됨.
+
+각 타임아웃 함수 콜백은 실제로 각 IIFE에 의해 생성된 자체 반복 범위에서 닫힙니다.
+
+범위가 비어 있는 경우 닫을 범위를 갖는 것만으로는 충분하지 않습니다.
+
+IIFE는 아무것도 하지 않는 공허한 범위일 뿐입니다.
+
+우리에게 유용한 무언가가 필요합니다.
+
+각 반복에서 i 값의 복사본과 함께 자체 변수가 필요합니다.
+
+```jsx
+for (var i = 1; i <= 5; i++) {
+  (function () {
+    var j = i;
+    setTimeout(function timer() {
+      console.log(j);
+    }, j * 1000);
+  })();
+}
+```
+
+1,2,3,4,5 차례대로 1초에 한번씩 출력됨.
+
+선호하는 약간의 변형은 다음과 같습니다.
+
+```jsx
+for (var i = 1; i <= 5; i++) {
+  (function (j) {
+    setTimeout(function timer() {
+      console.log(j);
+    }, j * 1000);
+  })(i);
+}
+```
+
+각 반복 내에서 IIFE를 사용하면 각 반복에 대한 새로운 범위가 생성되어 타임아웃 함수 콜백이 각 반복에 대한 새 범위를 닫을 기회를 얻었습니다.
+
+---
+
+## Block Scoping Revisited (블록 범위 재검토)
+
+IIFE를 사용하여 바복당 새로운 scope를 생성했습니다.
+
+즉, 실제로 반복당 블록 범위가 필요했습니다.
+
+3장에서는 블록을 하이재킹하고 블록에서 바로 변수를 선언하는 let선언을 보여줬습니다.
+
+본질적으로 블록을 닫을 수 있는 scope로 바꿉니다.
+
+따라서 다음과 같은 멋진 코드가 작동합니다.
+
+```jsx
+for (var i = 1; i <= 5; i++) {
+  let j = i; // yay, block-scope for closure!
+  setTimeout(function timer() {
+    console.log(j);
+  }, j * 1000);
+}
+```
+
+하지만 그게 다가 아닙니다.
+
+for 루프의 헤드에서 사용되는 let선언에 대해 정의된 특별한 동작이 있습니다.
+
+이 동작은 변수가 루프에 대해 한번만 선언되는 것이 아니라 각 반복에 대해 선언된다는 것을 의미합니다.
+
+그리고 도움이 되는 값으로 후속 반복마다 초기화됩니다.
+
+```jsx
+for (let i = 1; i <= 5; i++) {
+  setTimeout(function timer() {
+    console.log(i);
+  }, i * 1000);
+}
+```
+
+첫 코드와 달리 let으로 선언한 결과..
+
+block scope 지정 및 closure가 함께 작동하여 전 세계의 모든 문제를 해결합니다. (ㅋㅋ)
+
+---
+
+## Modules
+
+클로저의 힘을 활용하지만 표면적으로는 콜백에 대해 나타나지 않는 다른 코드 패턴이 있습니다.
+
+가장 강력한 \**모듈*을 살펴보겠습니다.
+
+```jsx
+function foo() {
+  var something = "cool";
+  var another = [1, 2, 3];
+
+  function doSomething() {
+    console.log(something);
+  }
+
+  function doAnother() {
+    console.log(another.join(" ! "));
+  }
+}
+```
+
+이 코드가 현재 상태이므로 관찰 가능한 클로저가 진행되고있지 않습니다.
+
+단순히 foo()의 내부 범위에 대해 lexical scope를 갖는 두 개의 내부 함수 doSomething() 및 doAnother() 몇 가지 개인 데이터 변수를 가지고 있습니다.
+
+```jsx
+function CoolModule() {
+  var something = "cool";
+  var another = [1, 2, 3];
+
+  function doSomething() {
+    console.log(something);
+  }
+  function doAnother() {
+    console.log(another.join(" ! "));
+  }
+
+  return {
+    doSomething: doSomething,
+    doAnother: doAnother,
+  };
+}
+
+var foo = CoolModule();
+foo.doSomething(); // cool
+foo.doAnother(); // 1 ! 2 ! 3
+```
+
+이것이 우리가 모듈이라고 부르는 JavaScript의 패턴입니다.
+
+모듈 패턴을 구현하는 가장 일반적인 방법은 종종 공개 모듈이라고 합니다.
+
+1. CoolModule()은 함수일 뿐이지만 모듈 인스턴스가 생성되려면 호출되어야 합니다.
+
+외부 기능을 실행하지 않으면 내부 범위와 클로저가 생성되지 않습니다.
+
+2. CoolModule() 함수는 객체 리터럴 구문 {key: value, ...}로 표시되는 객체를 반환합니다.
+
+우리가 반환하는 객체에는 내부 함수에 대한 참조가 있지만 내부 데이터 변수에 대한 참조는 없습니다.
+
+우리는 그것들을 숨기고 비공개로 유지합니다.
+
+이 객체 반환 값을 본질적으로 우리 모듈의 공개 API로 생각하는것이 적절합니다.
+
+이 객체 반환값은 궁극적으로 외부 변수 foo에 할당되며 foo.doSomething()과 같은 API의 속성 메서드에 액세스 할 수 있습니다.
+
+## Note
+
+모듈에서 실제 객체(리터럴)를 반환할 필요는 없습니다.
+
+내부 함수를 직접 반환할 수 있습니다.
+
+jQuery는 이것의 좋은 예입니다.
+
+jQuery와 $ 식별자는 jQuery 모듈의 공개 API이지만 그 자체로 기능일 뿐입니다(모든 기능이 객체이므로 속성을 가질 수 있음).
+
+doSomething() 및 doAnother()함수에는 모듈 인스턴스의 내부 범위에 대한 클로저가 있습니다.
+
+모듈 패턴이 실행되기 위한 두 가지 요구 사항이 있습니다.
+
+1. 외부에 닫는 기능이 있어야 하고 최소한 한 번은 호출되어야 합니다(매번 새 모듈 인스턴스를 생성함).
+
+2. 둘러싸는 함수는 적어도 하나의 내부 함수를 반환해야 합니다. 그래야 이 내부 함수가 비공개 범위에 대해 클로저가 있고 해당 비공개 상태에 액세스 및/또는 수정할 수 있습니다.
+
+함수 속성이 있는 객체는 실제로 모듈이 아닙니다.
+
+데이터 속성만 있고 닫힌 함수가 없는 함수 호출에서 반환된 객체는 관찰 가능한 의미에서 실제로 모듈이 아닙니다.
+
+이전 코드 스니펫은 CoolModule()이라는 독립 실행형 모듈 작성자를 보여줍니다.
+
+새 모듈 인스턴스. 이 패턴의 약간의 변형은 하나의 인스턴스, 일종의 싱글톤만 가질 때입니다.
+
+```jsx
+var foo = (function CoolModule() {
+  var something = "cool";
+  var another = [1, 2, 3];
+
+  function doSomething() {
+    console.log(something);
+  }
+  function doAnother() {
+    console.log(another.join(" ! "));
+  }
+  return {
+    doSomething: doSomething,
+    doAnother: doAnother,
+  };
+})();
+
+foo.doSomething(); // cool
+foo.doAnother(); // 1 ! 2 ! 3
+```
+
+여기서 우리는 모듈 함수를 IIFE로 바꿨고
+
+그것을 즉시 호출하고 반환값을 단일 모듈 인스턴스 식별자
+
+foo에 직접 할당했습니다.
+
+모듈은 함수일 뿐이므로 매개 변수를 받을 수 있습니다.
+
+```jsx
+function CoolModule(id) {
+  function identify() {
+    console.log(id);
+  }
+  return {
+    identify: identify,
+  };
+}
+
+var foo1 = CoolModule("foo 1");
+var foo2 = CoolModule("foo 2");
+
+foo1.identify(); // "foo 1"
+foo2.identify(); // "foo 2"
+```
+
+모듈 패턴의 또 다른 작지만 강력한 변형은
+
+반환하는 개체의 이름을 공개 API로 지정하는 것입니다.
+
+```jsx
+var foo = (function CoolModule(id) {
+  function change() {
+    // modifying the public API
+    publicAPI.identify = identify2;
+  }
+
+  function identify1() {
+    console.log(id);
+  }
+
+  function identify2() {
+    console.log(id.toUpperCase());
+  }
+
+  var publicAPI = {
+    change: change,
+    identify: identify1,
+  };
+
+  return publicAPI;
+})("foo module");
+
+foo.identify(); // foo module
+foo.change();
+foo.identify(); // FOO MODULE
+```
+
+모듈 인스턴스 내부에서 공개 API 객체에 대한 내부 참조를 유지함으로써 메서드 및 속성 추가 및 제거, 해당 값 변경을 포함하여 내부에서 해당 모듈 인스턴스를 수정할 수 있습니다.
+
+---
+
+## Modern Modules
+
+다양한 모듈 종속성 로더/관리자는 기본적으로 이 패턴의 모듈 정의를 친숙한 API로 마무리합니다.
+
+특정 라이브러리를 조사하는 대신 설명을 위해 매우 간단한 개념 증명을 제시하겠습니다.
+
+```jsx
+var MyModules = (function Manager() {
+  var modules = {};
+
+  function define(name, deps, impl) {
+    for (var i = 0; i < deps.length; i++) {
+      deps[i] = modules[deps[i]];
+    }
+    modules[name] = impl.apply(impl, deps);
+  }
+
+  function get(name) {
+    return modules[name];
+  }
+
+  return {
+    define: define,
+    get: get,
+  };
+})();
+```
+
+이 코드의 핵심 부분은
+
+modules[name] = impl.apply(impl, deps) 입니다.
+
+이것은 모듈에 대한 정의 래퍼 함수를 호출하고 반환값인 모듈의 API를
+
+이름으로 추적되는 모듈의 내부 목록에 저장합니다.
+
+다음은 일부 모듈을 정의하는 데 사용하는 방법입니다.
+
+```jsx
+MyModules.define("bar", [], function () {
+  function hello(who) {
+    return "Let me introduce: " + who;
+  }
+  return {
+    hello: hello,
+  };
+});
+
+MyModules.define("foo", ["bar"], function (bar) {
+  var hungry = "hippo";
+  function awesome() {
+    console.log(bar.hello(hungry).toUpperCase());
+  }
+  return {
+    awesome: awesome,
+  };
+});
+
+var bar = MyModules.get("bar");
+var foo = MyModules.get("foo");
+console.log(bar.hello("hippo")); // Let me introduce: hippo
+foo.awesome(); // LET ME INTRODUCE: HIPPO
+```
+
+foo 및 bar 모듈은 모두 공개 API를 반환하는 함수로 정의됩니다.
+
+foo는 종속성 매개변수로 bar의 인스턴스를 수신하고 그에 따라 사용할 수 있습니다.
+
+이 코드를 검토하는데 시간을 할애하십시오.
+
+핵심은 모듈 관리자에게 실제로 특별한 마법이 없다는 것입니다.
+
+그것들은 위에서 나열한 모듈 패턴의 두 가지 특성을 모두 충족합니다.
+
+즉, 함수 정의 래퍼를 호출하고 반환값을 해당 모듈의 API로 유지합니다.
+
+모듈위에 친숙한 래퍼 도구를 올려도 모듈은 모듈일 뿐입니다.
+
+---
+
+## Future Modules
+
+모듈 시스템을 통해 로드될 때 ES6는 파일을 별도의 모듈로 취급합니다.
+
+각 모듈은 다른 모듈이나 특정 API 멤버를 가져올 수 있을 뿐만 아니라
+
+자체 공개 API 멤버를 내보낼 수도 있습니다.
+
+## Note
+
+함수기반 모듈은 정적으로 인식되는 패턴(컴파일러가 알고있는)이 아니므로
+
+API 의미 체계는 런타임까지 고려되지 않습니다.
+
+즉, 런타임 중에 실제로 모듈의 API를 수정할 수 있습니다.
+
+대조적으로 ES6모듈 API는 정적입니다.(런타임에 변경되지 않음.)
+
+컴파일러는 그것을 알고 있기 때문에 파일로딩 및 컴파일 중에 가져온 모듈의
+
+API 멤버에 대한 참조가 실존하는지 확인할 수 있습니다.
+
+API참조가 존재하지 않으면 컴파일러는 기존의 동적 런타임 확인을 기다리지않고 컴파일 시간에 'early'(초기)오류를 발생시킵니다.
+
+ES6 모듈에는 '인라인'형식이 없으므로 별도의 파일에 정의해야 합니다.
+
+브라우저/엔진에는 가져올 때 모듈 파일을 동기적으로 로드하는 기본 '모듈 로더'가 있습니다.
+
+```jsx
+bar.js
+
+   function hello(who) {
+       return "Let me introduce: " + who;
+}
+
+export hello;
+```
+
+```jsx
+foo.js
+
+   // import only `hello()` from the "bar" module
+   import hello from "bar";
+
+   var hungry = "hippo";
+
+   function awesome() {
+       console.log(
+           hello( hungry ).toUpperCase()
+       );
+   }
+   export awesome;
+
+```
+
+```jsx
+baz.js
+
+   // import the entire "foo" and "bar" modules
+   module foo from "foo";
+   module bar from "bar";
+
+   console.log(
+       bar.hello( "rhino" )
+   ); // Let me introduce: rhino
+
+   foo.awesome(); // LET ME INTRODUCE: HIPPO
+
+```
+
+## Note
+
+foo.js 및 bar.js 파일을 별도로 생성해야 하며, 콘텐츠는 각각 처음 두 스니펫에 표시된 것과 같습니다.
+
+그런 다음, 세 번째 스니펫에 표시된 대로 프로그램 baz.js는 해당 모듈을 로드/가져오기하여 사용합니다.
+
+import는 모듈의 API에서 현재 범위로 하나 이상의 멤버를 가져옵니다.
+
+바인딩된 변수에 대한 모듈API(foo, bar).
+
+export는 식별자(변수, 함수)를 현재 모듈의 공개 API로 내보냅니다.
+
+이러한 연산자는 모듈의 정의에서 필요한 만큼 사용할 수 있습니다.
+
+모듈 파일 내부의 내용은 앞에서 본 함수 클로저 모듈과 마찬가지로
+
+scope closure에 포함된 것처럼 처리됩니다.
+
+---
+
+## Review
+
+클로저는 너무 어려워 보이지만 실제로는 함수가 값이고 마음대로 전달할 수 있는
+
+lexical scope환경에서 코드를 작성하는 방법에 대한 표준적이고
+
+거의 명백한 사실일 뿐입니다.
+
+closure는 함수가 lexical scope 외부에서 호출된 경우에도 lexical scope를 기억하고 액세스할 수 있는 경우입니다.
+
+클로저는 루프와 같이 클로저와 작동 방식을 인식하는 데 주의를 기울이지 않으면 실수할 수 있습니다.
+
+그러나 그것은 다양한 형태의 모듈과 같은 패턴을 가능하게 하는 매우 강력한 도구이기도 합니다.
+
+### 모듈에는 두 가지 주요 특성이 필요합니다.
+
+1. 둘러싸는 범위를 만들기 위해 호출되는 외부 래핑 함수
+1. 래핑 함수의 반환 값에는 래퍼의 개인 내부 범위에 대한 클로저가 있는 하나 이상의 내부 함수에 대한 참조가 포함되어야 합니다.
+
+우리는 기존 코드 주변에서 클로저를 볼 수 있으며 이를 인식하고 활용할 수 있습니다 !
