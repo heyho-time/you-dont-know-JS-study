@@ -639,3 +639,263 @@ function baz() {
 ajax("http://some.url.1", foo);
 ajax("http://some.url.2", bar);
 ```
+
+`foo()` 혹은 `bar()` 중 하나가 마지막으로 실행되는 것은 다른 것에서 할당된 값을 덮어쓸 뿐만 아니라 `baz()` 에 대한 호출도 복제합니다.
+
+따라서 간단한 래치로 상호 작용을 조정하여, 첫 번째 래치만 통과시킬 수 있습니다.
+
+```js
+var a;
+
+function foo(x) {
+  if (!a) {
+    a = x * 2;
+    baz();
+  }
+}
+
+function bar(x) {
+  if (!a) {
+    a = x / 2;
+    baz();
+  }
+}
+
+function baz() {
+  console.log(a);
+}
+
+// ajax(..) is some arbitrary Ajax function given by a library
+ajax("http://some.url.1", foo);
+ajax("http://some.url.2", bar);
+```
+
+`if (!a)` 조건은 둘 중 첫 번째 호출만 허용합니다.
+
+<br/>
+
+### Cooperation
+
+---
+
+동시성 조정(cooperation coordination)은 다른 말로 협동적 동시성(cooperative concurrency)이라고 한다.
+
+- 여기서는 **장기간 실행되는 "프로세스"를 단계 또는 배치로 분할하여 다른 동시 "프로세스"가 해당 작업을 이벤트 루프 대기열에 삽입할 기회를 갖도록 하는 것**을 목표로 합니다.
+
+```js
+var res = [];
+// `response(..)` receives array of results from the Ajax call
+function response(data) {
+  // add onto existing `res` array
+  res = res.concat(
+    // make a new transformed array with all `data` values doubled
+    data.map(function (val) {
+      return val * 2;
+    })
+  );
+}
+
+// ajax(..) is some arbitrary Ajax function given by a library
+ajax("http://some.url.1", response);
+ajax("http://some.url.2", response);
+```
+
+결과 목록 전체를 한 번에 `res` 에 매핑하는 것은 일반적으로 큰 문제가 아니지만, 천 만개의 레코드가 있는 경우 실행하는데 시간이 좀 걸릴 수 있습니다.
+
+- 해당 프로세스가 실행되는 동안 페이지에서 어떠한 일도 발생할 수 없는 것은 참 고통스러울 것입니다.
+
+그렇기에 보다 더 협력적인 동시 시스템을 만들기 위해서 해당 결과를 이벤트 루프 대기열을 차지하지 않는 시스템을 만들 수 있습니다.
+
+```js
+var res = [];
+
+// `response(..)` receives array of results from the Ajax call
+function response(data) {
+  // let's just do 1000 at a time
+  var chunk = data.splice(0, 1000);
+
+  // add onto existing `res` array
+  res = res.concat(
+    // make a new transformed array with all `chunk` values doubled
+    chunk.map(function (val) {
+      return val * 2;
+    })
+  );
+
+  // anything left to process?
+  if (data.length > 0) {
+    // async schedule next batch
+    setTimeout(function () {
+      response(data);
+    }, 0);
+  }
+}
+
+// ajax(..) is some arbitrary Ajax function given by a library
+ajax("http://some.url.1", response);
+ajax("http://some.url.2", response);
+```
+
+1,000개 항목의 최대 크기 청크로 데이터 세트를 처리합니다.
+
+- 그렇게 함으로, 이벤트 루프 대기열에 성능이 더 좋은 사이트/앱을 제공하므로, 더 많은 후속 프로세스가 있어도 단기 실행되는 프로세스를 보장합니다.
+- 물론, 프로세스의 순서를 조정하지 않기에 순서는 예측할 수 없습니다.
+
+우리는 비동기 스케쥴링을 위해 `setTimeout(..0)(hack)` 을 사용하고, 이는 현재 이벤트 루프 큐의 끝에 이 함수를 고정한다는 뜻입니다.
+
+<br/>
+
+## Jobs
+
+---
+
+ES6 부터 이벤트 루프 큐 위에 **작업 큐(Job queue)**라는 새로운 개념이 추가되었습니다.
+
+- 가장 비슷한 표현은 `Promise` 비동기 동작입니다.
+
+해당 개념을 가장 잘 설명하는 것은 작업 큐가 **이벤트 루프 큐의 모든 틱 끝에 매달린 대기열이라는 것**입니다.
+
+놀이기구로 비교하면 다음과 같습니다.
+
+- 이벤트 루프 큐 = 놀이기구를 타고 뒤로 돌아가서 다시 타는 것
+- 작업 대기열 = 타고 마친 후 줄을 서서 바로 다시 출발하는 것
+
+작업(Job)으로 인해 큐 끝에 더 많은 작업이 추가될 수 있기에, 이론적으로 작업 루프를 무한으로 돌려 프로그램이 다음 이벤트 루프 틱으로 이동하는 기능을 고갈시킬 수 있습니다.
+
+- 이것은 개념적으로 무한 루프를 표현하는 것과 거의 같습니다.
+
+작업은 일종의 `setTimeout(...0)` hack과 비슷하지만 훨씬 더 잘 정의되고 보장된 순서를 갖는 방식으로 구현됩니다.
+
+작업을 예약(scheduling)하기 위한 API를 상상하고 그것을 `schedule(..)` 이라 불러봅시다.
+
+```js
+console.log("A");
+
+setTimeout(function () {
+  console.log("B");
+}, 0);
+
+// theoretical "Job API"
+schedule(function () {
+  console.log("C");
+
+  schedule(function () {
+    console.log("D");
+  });
+});
+```
+
+`A B C D` 를 출력할 것이라고 예상하지만, 작업이 현재 이벤트 루프(`console.log("A")`) 끝에서 발생하고 타이머가 다음 이벤트 루프 틱에 대한 일정을 잡기 위해 실행되기 때문에 `A C D B` 를 출력합니다.
+
+<br/>
+
+## Statement Ordering
+
+---
+
+코드에서 명령문을 표현하는 순서는 자바스크립트 엔진이 실행하는 순서와 반드시 같을 필요는 없습니다.
+
+> 이는 매우 이상한 주장처럼 보일 수 있으므로 간단히 살펴보겠습니다.
+
+```js
+var a, b;
+
+a = 10;
+b = 30;
+
+a = a + 1;
+b = b + 1;
+
+console.log(a + b); // 42
+```
+
+위 코드는 비동기식으로 표현되지 않았기에 가정은 하향식 처리가 될 것입니다.
+
+- 하지만 자바스크립트 엔진이 해당 코드를 컴파일하고 재정렬하여 최적화를 할 수 있습니다.
+
+```js
+var a, b;
+
+a = 10;
+a++;
+
+b = 30;
+b++;
+
+console.log(a + b); // 42
+```
+
+또는,
+
+```js
+var a, b;
+
+a = 11;
+b = 31;
+
+console.log(a + b); // 42
+```
+
+또는,
+
+```js
+// because `a` and `b` aren't used anymore, we can
+// inline and don't even need them!
+console.log(42); // 42
+```
+
+위 모든 경우는 최종적인 예측 가능 결곽 동일하기에 컴파일하는 동안 최적화를 수행할 수 있습니다.
+
+다음의 경우 특정 최적화가 안전하지 않아 허용될 수 없는 시나리오입니다(물론 최적화되지 않았다는 것은 아닙니다).
+
+```js
+var a, b;
+
+a = 10;
+b = 30;
+
+// we need `a` and `b` in their preincremented state!
+console.log(a * b); // 300 a = a + 1;
+
+b = b + 1;
+
+console.log(a + b); // 42
+```
+
+컴파일러 재정렬이 예측 가능한 부작용을 생성할 수 있는 다른 예시에는 부작용이 있는 함수 호출 또는 ES6 프록시 객체가 포함됩니다.
+
+```js
+function foo() {
+  console.log(b);
+  return 1;
+}
+
+var a, b, c;
+
+// ES5.1 getter literal syntax
+c = {
+  get bar() {
+    console.log(a);
+    return 1;
+  },
+};
+
+a = 10;
+b = 30;
+
+a += foo(); // 30
+b += c.bar; // 11
+
+console.log(a + b); // 42
+```
+
+해당 코드의 `console.log()` 문이 아니었다면, 자바스크립트 엔진은 자유롭게 코드를 다음과 같이 재정렬했을 것입니다.
+
+```js
+// ...
+a = 10 + foo();
+b = 30 + c.bar;
+// ...
+```
+
+자바스크립트 Semantics는 명령문 재정렬이 예측 가능한 위험으로부터 우리를 보호하지만, 소스 코드가 작성되는 방식과 실행되는 방식 사이의 연결이 얼마나 빈약한지를 이해하는 것은 여전히 중요합니다.
