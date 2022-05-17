@@ -1,0 +1,32 @@
+---
+slug: /harry/asynchrony
+title: 비동기와 콜백
+authors: [heyho]
+tags: [asynchrony, callbacks]
+---
+
+```jsx
+function harry(str) {
+  console.log(str);
+}
+
+harry("공부");
+harry("먹기");
+harry("놀기");
+```
+
+순서대로 위에서 아래로 실행되는것이 동기.
+
+```jsx
+function harry(str) {
+  setTimeout(function () {
+    console.log(str);
+  }, 1000 * Math.random());
+}
+
+harry("공부");
+harry("먹기");
+harry("놀기");
+```
+
+이렇게 하면 랜덤하게 실행됨.
