@@ -5,28 +5,153 @@ authors: [heyho]
 tags: [asynchrony, callbacks]
 ---
 
+<br />
+<br />
+
+### 책 본문과 함께 좀 더 이해를 해보고자 검색중
+
+### 드림코딩의 비동기 영상이 정리가 잘 되어있다고 해서 학습해봤습니다.
+
+<a style={{ fontSize: 20 }} href="https://www.youtube.com/watch?v=s1vpVCrT8f4">
+  영상 링크
+</a>
+
+## 개념
+
+javascript is synchronous. 자바스크립트는 동기적이다. 하나씩 순서대로 작동한다.
+
+hoisting 된 이후부터 코드가 순서대로 작동한다.
+
+(hoisting은 선언들이 제일 위로 올라간 것 처럼 작동하는 것.)
+
+그와 반대가 asynchronous 비동기!
+
 ```jsx
 function harry(str) {
   console.log(str);
 }
 
-harry("공부");
-harry("먹기");
-harry("놀기");
+harry("1");
+harry("2");
+harry("3");
 ```
 
 순서대로 위에서 아래로 실행되는것이 동기.
 
 ```jsx
-function harry(str) {
-  setTimeout(function () {
-    console.log(str);
-  }, 1000 * Math.random());
-}
+console.log("1");
 
-harry("공부");
-harry("먹기");
-harry("놀기");
+setTimeout(() => {
+  console.log("2");
+}, 1000);
+
+console.log("3");
 ```
 
-이렇게 하면 랜덤하게 실행됨.
+setTimeout은 browser api 이다.
+
+**browser api는 브라우저에 요청 후, 응답을 기다리지않고 바로 다음 코드를 읽는다.**
+
+그리하여 1, 3, 2 순으로 출력된다.
+
+여기서 이용된게 블로그 전 글에서 다룬 **이벤트 루프**이다.
+
+---
+
+## 콜백은 동기, 비동기적으로 쓰일 수 있다.
+
+콜백은 비동기일때만 쓰이는 것이 아니다.
+
+즉각적으로(동기적으로) 실행하는 **synchronous 콜백**과
+
+나중에 언제 실행될지 예측할 수 없는 **asynchronous 콜백** 을 살펴보자.
+
+```jsx
+// synchronous callback
+function printImmediately(print) {
+  print();
+}
+
+printImmediately(() => console.log("hihi"));
+```
+
+(위의 코드스니팻도 포함)1, 3, hihi, 2 순으로 출력된다.
+
+```jsx
+//asynchronous callback
+function printWithDelay(print, timeout) {
+  setTimeout(print, timeout);
+}
+
+printWithDelay(() => console.log("async callback"), 2000);
+```
+
+1, 3, hihi, 2, async callback 이렇게 출력된다.
+
+---
+
+## 콜백 지옥 체험 !!
+
+```jsx
+
+개발자 도구 콘솔에 찍어보세용.
+
+class UserStorage {
+  loginUser(id, password, onSuccess, onError) {
+    setTimeout(() => {
+      if (
+        (id === "heyho" && password === "heyho")
+      ) {
+        onSuccess(id);
+      } else {
+        onError(new Error("not found"));
+      }
+    }, 1000);
+  }
+
+  getRoles(user, onSuccess, onError) {
+    setTimeout(() => {
+      if (user === "heyho") {
+        onSuccess({ name: "heyho", role: "admin" });
+      } else {
+        onError(new Error("no access"));
+      }
+    }, 1000);
+  }
+}
+
+const userStorage = new UserStorage();
+const id = prompt("enter your id");
+const password = prompt("enter your password");
+
+userStorage.loginUser(
+  id,
+  password,
+  (user) => {
+    userStorage.getRoles(
+      user,
+      (userWithRole) => {
+        alert(
+          `hello ${userWithRole.name}, you have a ${userWithRole.role} role`
+        );
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  },
+  (error) => {
+    console.log(error);
+  }
+);
+```
+
+### 콜백 체인의 문제점
+
+콜백을 이용해 함수 안에서 다른것을 호출하고, 전달하고 일련의 작업들을 하면
+이것이 바로 콜백 지옥이다.
+
+1. 읽기가 불편. 가독성이 떨어진다.
+2. 유지 보수성도 떨어진다.
+
+그리하여 promise, async, await으로 좀 더 효율적으로, 병렬적으로 비동기 코드를 작성할 수 있는지 알아보겠다.!
